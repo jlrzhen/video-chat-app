@@ -1,8 +1,8 @@
 import './style.css'
 import javascriptLogo from './javascript.svg'
-import { setupCounter } from './counter.js'
-import './webcam.js'
-import * as buttons from './buttons.js'
+import { setupCounter } from './components/counter.js'
+import './components/webcam.js'
+import * as buttons from './components/buttons.js'
 
 document.querySelector('#app').innerHTML = `
   <div>
@@ -13,13 +13,17 @@ document.querySelector('#app').innerHTML = `
       <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
     </a>
     <h1>Hello Vite!</h1>
+    <input id="room-id" type="text" placeholder="Search..">
     <button id="counter" type="button"></button>
     <div class="card">
       <button id="addButton" type="button">Add Entry</button>
       <button id="readButton" type="button">Read Entry</button>
       <button id="updateButton" type="button">Update Entry</button>
       <button id="deleteButton" type="button">Delete Entry</button>
+      <button id="createRoomButton" type="button">Create Room</button>
+      <button id="joinRoomButton" type="button">Join Room</button>
     </div>
+    <p id="currentRoom">trolololo</p>
     <p class="read-the-docs">
       Click on the Vite logo to learn more
     </p>
@@ -31,3 +35,5 @@ buttons.setupAddButton(document.querySelector('#addButton'))
 buttons.setupReadButton(document.querySelector('#readButton'))
 buttons.setupUpdateButton(document.querySelector('#updateButton'))
 buttons.setupDeleteButton(document.querySelector('#deleteButton'))
+buttons.setupCreateRoomButton(document.querySelector('#createRoomButton'))
+buttons.setupJoinRoomButton(document.querySelector('#joinRoomButton'))

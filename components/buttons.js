@@ -15,3 +15,11 @@ export function setupUpdateButton(element) {
 export function setupDeleteButton(element) {
     element.addEventListener('click', () => firebase.deleteData())
 }
+
+export function setupCreateRoomButton(element) {
+    element.addEventListener('click', () => firebase.createRoom())
+}
+
+export function setupJoinRoomButton(element) {
+    element.addEventListener('click', () => firebase.joinRoom())
+}
