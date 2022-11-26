@@ -114,18 +114,48 @@
 
     let peerConnection1 = new RTCPeerConnection(configuration);
     let peerConnection2 = new RTCPeerConnection(configuration);
-    let localStream = null;
+    let localStream = await navigator.mediaDevices.getUserMedia(
+        {video: true, audio: true});;
     let remoteStream = null;
     let roomDialog = null;
     let roomId = null;
 
     export async function createRoom() {
+        openUserMedia();
         registerPeerConnectionListeners();
-        const offer = await peerConnection1.createOffer();
+
+        localStream.getTracks().forEach(track => {
+            peerConnection1.addTrack(track, localStream);
+        });
+
         console.log("set LOCAL description CREATE room start");
-        await peerConnection1.setLocalDescription(offer);
         console.log("set LOCAL description CREATE room end");
         console.log("set LOCAL description CREATE room state is ", peerConnection1.signalingState);
+
+        const candidatesCollection = collection(db, 'callerCandidates');
+        console.log("icecandidate ")
+        //peerConnection1.onicecandidate = (event) => {
+        peerConnection1.addEventListener('icecandidate', event => {
+            console.log("icecandidate eventListener triggered")
+            if (event.candidate) {
+                const json = event.candidate.toJSON();
+                //candidatesCollection.add(json);
+                console.log("added: ", json)
+                addDoc(candidatesCollection, json);
+            }
+        });
+        
+        const offer = await peerConnection1.createOffer();
+        await peerConnection1.setLocalDescription(offer);
+    
+        /* roomRef.collection('rooms').onSnapshot(snapshot => {
+            onSnapshot.docChanges().forEach(change => {
+                if (change.type === "added") {
+                    const candidate = new RTCIceCandidate(change.doc.data());
+                    peerConneciton.addIceCandidate(candidate);
+                }
+            });
+        }) */
 
         // creates room offer 
         const roomWithOffer = {
@@ -135,14 +165,12 @@
             }
         }
 
-
         // room ID reference on database
         // addDoc = doc.set
         const roomRef = await addDoc(collection(db, 'rooms'), roomWithOffer);
-
         //const roomRef = await db.collection('rooms').add(roomWithOffer)
 
-        const roomId = roomRef.id;
+        roomId = roomRef.id;
         document.querySelector('#currentRoom').innerText = `Current room is ${roomId} - You are the caller!`;
         async function test() {
             const roomRef = doc(db, "rooms", roomId);
@@ -190,6 +218,17 @@
         const roomRef = doc(db, "rooms", roomId);
         const docSnap = await getDoc(roomRef);
 
+        const calleeCandidatesCollection = collection(db, 'calleeCandidates');
+        peerConnection2.addEventListener('icecandidate', event => {
+            if (!event.candidate) {
+                console.log('Got final candidate!');
+                return;
+            }
+            console.log('Got candidate: ', event.candidate);
+            const json = event.candidate.toJSON()
+            addDoc(calleeCandidatesCollection, json);
+        });
+
         async function runUpdate(roomWithAnswer) {
             const roomRef = doc(db, "rooms", roomId);
             await updateDoc(roomRef, roomWithAnswer);
@@ -214,7 +253,11 @@
             console.log(data);
         
             console.log('Create PeerConnection with configuration: ', configuration);
+            openUserMedia();
             registerPeerConnectionListeners();
+            localStream.getTracks().forEach(track => {
+                peerConnection2.addTrack(track, localStream);
+              });
         
             // Checks for changes in database when a callee has been added
             /* if (!peerConnection.currentRemoteDescription && docSnap.answer) {
@@ -248,6 +291,14 @@
             console.log("LOLOL GET TROLLED");
         }
 
+    }
+
+    export async function openUserMedia() {
+        console.log("openUserMediaStream")
+        //const stream = 
+        //document.querySelector('#localVideo').srcObject = stream;
+        localStream = await navigator.mediaDevices.getUserMedia(
+            {video: true, audio: true});
     }
 
     // PeerConnection instance
