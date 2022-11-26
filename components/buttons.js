@@ -23,3 +23,11 @@ export function setupCreateRoomButton(element) {
 export function setupJoinRoomButton(element) {
     element.addEventListener('click', () => firebase.joinRoom())
 }
+
+export function setupOpenMediaUserButton(element) {
+    element.addEventListener('click', () => firebase.openUserMedia())
+}
+
+export function setupAttachRemoteStream(element) {
+    element.addEventListener('click', () => firebase.attachRemoteStream())
+}

@@ -116,7 +116,8 @@
     let peerConnection2 = new RTCPeerConnection(configuration);
     let localStream = await navigator.mediaDevices.getUserMedia(
         {video: true, audio: true});;
-    let remoteStream = null;
+    let remoteStream1 = null;
+    let remoteStream2 = null;
     let roomDialog = null;
     let roomId = null;
 
@@ -144,6 +145,14 @@
                 addDoc(candidatesCollection, json);
             }
         });
+
+        peerConnection1.addEventListener('track', event => {
+            console.log('Got remote track:', event.streams[0]);
+            event.streams[0].getTracks().forEach(track => {
+              console.log('Add a track to the remoteStream:', track);
+              remoteStream1.addTrack(track);
+            });
+          });
         
         const offer = await peerConnection1.createOffer();
         await peerConnection1.setLocalDescription(offer);
@@ -179,6 +188,14 @@
         }
         console.log("1 CREATE ROOM STATE IS ", peerConnection1.signalingState, test());
         
+        peerConnection1.addEventListener('track', event => {
+            console.log('Got remote track:', event.streams[0]);
+            event.streams[0].getTracks().forEach(track => {
+              console.log('Add a track to the remoteStream:', track);
+              remoteStream.addTrack(track);
+            });
+          });
+
         const snap = onSnapshot(doc(db, "rooms", roomId), async (doc) => {
             console.log("2 CREATE ROOM STATE IS ", peerConnection1.signalingState, doc);
             console.log("DOC:", doc);
@@ -228,6 +245,14 @@
             const json = event.candidate.toJSON()
             addDoc(calleeCandidatesCollection, json);
         });
+
+        peerConnection2.addEventListener('track', event => {
+            console.log('Got remote track:', event.streams[0]);
+            event.streams[0].getTracks().forEach(track => {
+              console.log('Add a track to the remoteStream:', track);
+              remoteStream2.addTrack(track);
+            });
+          });
 
         async function runUpdate(roomWithAnswer) {
             const roomRef = doc(db, "rooms", roomId);
@@ -294,11 +319,14 @@
     }
 
     export async function openUserMedia() {
-        console.log("openUserMediaStream")
-        //const stream = 
-        //document.querySelector('#localVideo').srcObject = stream;
-        localStream = await navigator.mediaDevices.getUserMedia(
-            {video: true, audio: true});
+        document.querySelector('#localVideo').srcObject = localStream;
+        remoteStream1 = new MediaStream();
+        remoteStream2 = new MediaStream();
+    }
+
+    export async function attachRemoteStream() {
+        document.querySelector('#remoteVideo1').srcObject = remoteStream1;
+        document.querySelector('#remoteVideo2').srcObject = remoteStream2;
     }
 
     // PeerConnection instance

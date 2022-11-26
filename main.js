@@ -22,6 +22,8 @@ document.querySelector('#app').innerHTML = `
       <button id="deleteButton" type="button">Delete Entry</button>
       <button id="createRoomButton" type="button">Create Room</button>
       <button id="joinRoomButton" type="button">Join Room</button>
+      <button id="openMediaUserButton" type="button">Open Media</button>
+      <button id="attachRemoteStreamButton" type="button">Attach Remote</button>
     </div>
     <p id="currentRoom">trolololo</p>
     <p class="read-the-docs">
@@ -37,3 +39,5 @@ buttons.setupUpdateButton(document.querySelector('#updateButton'))
 buttons.setupDeleteButton(document.querySelector('#deleteButton'))
 buttons.setupCreateRoomButton(document.querySelector('#createRoomButton'))
 buttons.setupJoinRoomButton(document.querySelector('#joinRoomButton'))
+buttons.setupOpenMediaUserButton(document.querySelector('#openMediaUserButton'))
+buttons.setupAttachRemoteStream(document.querySelector('#attachRemoteStreamButton'))
