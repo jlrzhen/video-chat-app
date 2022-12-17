@@ -81,19 +81,31 @@ function handleError(error) {
   console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
 }
 
-function start() {
+function start(muted=true) {
   if (window.stream) {
     window.stream.getTracks().forEach(track => {
       track.stop();
     });
   }
+  
   const audioSource = audioInputSelect.value;
   const videoSource = videoSelect.value;
-  const constraints = {
-    audio: {deviceId: audioSource ? {exact: audioSource} : undefined},
-    video: {deviceId: videoSource ? {exact: videoSource} : undefined}
-  };
+  let constraints = {}
+  if(muted) {
+    constraints = {
+      video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+    };  
+  } else {
+    constraints = {
+      audio: {deviceId: audioSource ? {exact: audioSource} : undefined},
+      video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+    };  
+  }                             
   navigator.mediaDevices.getUserMedia(constraints).then(gotStream).then(gotDevices).catch(handleError);
+}
+
+export default function muteCheckbox(muted) {
+  start(muted)
 }
 
 audioInputSelect.onchange = start;

@@ -1,4 +1,5 @@
 import * as firebase from './firebase.js'
+import muteCheckbox from "./webcam.js"
 
 export function setupAddButton(element) {
     element.addEventListener('click', () => {firebase.addData()})
@@ -30,4 +31,16 @@ export function setupOpenMediaUserButton(element) {
 
 export function setupAttachRemoteStream(element) {
     element.addEventListener('click', () => firebase.attachRemoteStream())
+}
+
+export function setupMuteCheckbox(element) {
+    element.addEventListener('click', () => muteCheckbox(element.checked))
+}
+
+export function setupMutePersonalStream(element) {
+    element.addEventListener('click', () => firebase.mutePersonalStream(element.checked))
+}
+
+export function setupMuteOutboundStream(element) {
+    element.addEventListener('click', () => firebase.muteOutboundStream(element.checked))
 }
