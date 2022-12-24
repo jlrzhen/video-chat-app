@@ -115,11 +115,14 @@
     let localStream = await navigator.mediaDevices.getUserMedia(
         {video: true, audio: true}
     );
+    let personalStream = null;
     let remoteStream = null;
     let roomDialog = null;
     let roomId = null;
 
     export async function createRoom() {
+        document.querySelector("#createRoomButton").disabled = true //added line
+        document.querySelector("#joinRoomButton").disabled = true //added line
         //const roomRef = await db.collection('rooms').doc();
         const collectionRef = collection(db, 'rooms'); // modified
         const roomRef = await addDoc(collectionRef, {}); // modified
@@ -137,7 +140,6 @@
         //const callerCandidatesCollection = roomRef.collection('callerCandidates');
         console.log(roomRef.id)
         const callerCandidatesCollection = collection(db, `rooms/${roomRef.id}/callerCandidates`); // modified
-
         peerConnection.addEventListener('icecandidate', event => {
             if (!event.candidate) {
             console.log('Got final candidate!');
@@ -275,6 +277,9 @@
     }
 
     export async function openUserMedia(e) {
+        document.querySelector("#openMediaUserButton").disabled = true
+        document.querySelector("#joinRoomButton").disabled = false
+        document.querySelector("#createRoomButton").disabled = false
         const stream = await navigator.mediaDevices.getUserMedia(
             {video: true, audio: true}
         );
@@ -291,7 +296,6 @@
         /* 
         Muting yourself so that you can't hear your own voice
         */
-        let personalStream = {}
         if(muted){
             personalStream = await navigator.mediaDevices.getUserMedia(
                 {video: true, audio: false}
@@ -308,7 +312,6 @@
         // Your outbound stream is the other caller's remote stream
         // so muting 'local' stream means that they can't hear you
         console.log("LOCALSTREAM IS " , localStream)
-        //let localStream = {}
         if(muted){
             localStream.getAudioTracks().forEach(track => {
                 track.enabled = false;
@@ -316,11 +319,40 @@
         } else {
             localStream.getAudioTracks().forEach(track => {
                 track.enabled = true;
+                track.applyConstraints()
             });
         }
     }
 
-    async function hangUp(e) {
+    export async function disableWebcam(webcamDisabled=false) { // our new added function
+        // Your outbound stream is the other caller's remote stream
+        // so disabling 'local' stream means that they can't see you
+        console.log("LOCALSTREAM IS " , localStream)
+        if(webcamDisabled){
+            localStream.getVideoTracks().forEach(videoTrack => {
+                videoTrack.enabled = false;
+            });
+            personalStream.getVideoTracks().forEach(videoTrack => {
+                videoTrack.enabled = false;
+            });
+        } else {
+            localStream.getVideoTracks().forEach(videoTrack => {
+                videoTrack.enabled = true;
+            });
+            personalStream.getVideoTracks().forEach(videoTrack => {
+                videoTrack.enabled = true;
+            });
+        }
+    }
+
+    export async function setVolume() {
+        let sliderValue = document.querySelector('#volumeSlider').value;
+        let newVolume = sliderValue;
+        document.querySelector('#remoteVideo').volume = newVolume;
+        //console.log(`volume has been set to ${newVolume}`);
+    }
+
+    export async function hangUp(e) {
         const tracks = document.querySelector('#localVideo').srcObject.getTracks();
         tracks.forEach(track => {
             track.stop();
@@ -338,16 +370,20 @@
         if (roomId) {
             const roomRef = doc(db, "rooms", roomId);
             //const calleeCandidates = await roomRef.collection('calleeCandidates').get();
-            const calleeCandidates = await getDoc(db, roomRef.collection("calleeCandidates"))
+            const calleeCandidates = await getDocs(collection(db, `rooms/${roomRef.id}/calleeCandidates`));
+            console.log("calleeCandidates is ", calleeCandidates);
             calleeCandidates.forEach(async candidate => {
-                await candidate.ref.delete();
+                //await candidate.ref.delete();
+                await deleteDoc(candidate.ref);
             });
             //const callerCandidates = await roomRef.collection('callerCandidates').get();
-            const callerCandidates = await getDoc(db, roomRef.collection('callerCandidates'))
+            const callerCandidates = await getDocs(collection(db, `rooms/${roomRef.id}/callerCandidates`));
+            console.log("callerCandidates is ", callerCandidates);
             callerCandidates.forEach(async candidate => {
-                await candidate.ref.delete();
+                //await candidate.ref.delete();
+                await deleteDoc(candidate.ref);
             });
-            await roomRef.delete();
+            await deleteDoc(roomRef);
         }
 
         document.location.reload(true);
@@ -361,6 +397,11 @@
 
     peerConnection.addEventListener('connectionstatechange', () => {
         console.log(`Connection state change: ${peerConnection.connectionState}`);
+        if(peerConnection.connectionState === "connected") { // added this block
+            document.querySelector("#joinRoomButton").disabled = true
+            document.querySelector("#createRoomButton").disabled = true
+            document.querySelector("#hangUpButton").disabled = false
+        }
     });
 
     peerConnection.addEventListener('signalingstatechange', () => {

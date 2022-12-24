@@ -29,18 +29,26 @@ export function setupOpenMediaUserButton(element) {
     element.addEventListener('click', () => firebase.openUserMedia())
 }
 
-export function setupAttachRemoteStream(element) {
-    element.addEventListener('click', () => firebase.attachRemoteStream())
-}
-
 export function setupMuteCheckbox(element) {
     element.addEventListener('click', () => muteCheckbox(element.checked))
 }
-
+/*
 export function setupMutePersonalStream(element) {
     element.addEventListener('click', () => firebase.mutePersonalStream(element.checked))
-}
+} */
 
 export function setupMuteOutboundStream(element) {
     element.addEventListener('click', () => firebase.muteOutboundStream(element.checked))
+}
+
+export function setupHangUpButton(element) {
+    element.addEventListener('click', () => firebase.hangUp())
+}
+
+export function setupDisableWebcam(element) {
+    element.addEventListener('click', () => firebase.disableWebcam(element.checked))
+}
+
+export function setupVolumeSlider(element) {
+    element.addEventListener('input', () => firebase.setVolume())
 }
