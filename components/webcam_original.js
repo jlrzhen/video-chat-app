@@ -73,7 +73,6 @@ function changeAudioDestination() {
 function gotStream(stream) {
   window.stream = stream; // make stream available to console
   videoElement.srcObject = stream;
-  //document.querySelector('#localVideo').srcObject = stream;
   // Refresh button list in case labels have become available
   return navigator.mediaDevices.enumerateDevices();
 }
@@ -82,7 +81,7 @@ function handleError(error) {
   console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
 }
 
-export async function startWebcam(muted=true) {
+function start(muted=true) {
   if (window.stream) {
     window.stream.getTracks().forEach(track => {
       track.stop();
@@ -103,20 +102,15 @@ export async function startWebcam(muted=true) {
     };  
   }                             
   navigator.mediaDevices.getUserMedia(constraints).then(gotStream).then(gotDevices).catch(handleError);
-
-  // Added these two lines
-  console.log("RAN STARTWEBCAM")
-  const localStream = await navigator.mediaDevices.getUserMedia(constraints);
-  return localStream;
 }
 
 export default function muteCheckbox(muted) {
-  startWebcam(muted)
+  start(muted)
 }
 
-//audioInputSelect.onchange = startWebcam; // got moved to firebase.js
+audioInputSelect.onchange = start;
 audioOutputSelect.onchange = changeAudioDestination;
 
-//videoSelect.onchange = startWebcam; // got moved to firebase.js
+videoSelect.onchange = start;
 
-//startWebcam();
+start();

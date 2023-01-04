@@ -1,6 +1,7 @@
     import { initializeApp } from "firebase/app";
     import { getFirestore } from "firebase/firestore";
     import { collection, doc, query, addDoc, setDoc, getDocs, updateDoc, deleteDoc, onSnapshot, getDoc } from "firebase/firestore";
+    import { startWebcam } from "./webcam.js";
 
     // TODO: Replace the following with your app's Firebase project configuration
     // See: https://firebase.google.com/docs/web/learn-more#config-object
@@ -112,9 +113,7 @@
     };
 
     let peerConnection = null;
-    let localStream = await navigator.mediaDevices.getUserMedia(
-        {video: true, audio: true}
-    );
+    let localStream = null;
     let personalStream = null;
     let remoteStream = null;
     let roomDialog = null;
@@ -280,23 +279,43 @@
         document.querySelector("#openMediaUserButton").disabled = true
         document.querySelector("#joinRoomButton").disabled = false
         document.querySelector("#createRoomButton").disabled = false
-        const stream = await navigator.mediaDevices.getUserMedia(
+        let stream = await startWebcam(); // added this line
+        /* const stream = await navigator.mediaDevices.getUserMedia(
             {video: true, audio: true}
-        );
-        document.querySelector('#localVideo').srcObject = stream;
+        ); */
+        document.querySelector('#localVideo').srcObject = stream; //temp REMOVE
         localStream = stream;
         remoteStream = new MediaStream();
+        personalStream = await startWebcam();
         document.querySelector('#remoteVideo').srcObject = remoteStream;
 
-        console.log('Stream:', document.querySelector('#localVideo').srcObject);
-        mutePersonalStream() // added line
+        //console.log('Stream:', document.querySelector('#localVideo').srcObject);
+        console.log('Stream:', document.querySelector('video').srcObject);
+        console.log('localStream:', localStream);
+        //document.querySelector('#localVideo').srcObject = stream;
+
+        // added these 4 lines
+        const audioInputSelect = document.querySelector('select#audioSource');
+        const videoSelect = document.querySelector('select#videoSource');
+        audioInputSelect.onchange = updateVideoAudio;
+        videoSelect.onchange = updateVideoAudio;
+
+        mutePersonalStream(); // added line
+    }
+
+    function updateVideoAudio() {
+        startWebcam();
+        // addtracks stuff (doesn't work, FIX THIS)
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
     }
 
     export async function mutePersonalStream(muted=true) { // new function
         /* 
         Muting yourself so that you can't hear your own voice
         */
-        if(muted){
+        /* if(muted){
             personalStream = await navigator.mediaDevices.getUserMedia(
                 {video: true, audio: false}
             );
@@ -304,8 +323,18 @@
             personalStream = await navigator.mediaDevices.getUserMedia(
                 {video: true, audio: true}
             );
+        } */
+        if(muted){
+            personalStream.getAudioTracks().forEach(track => {
+                track.enabled = false;
+            });
+        } else {
+            personalStream.getAudioTracks().forEach(track => {
+                track.enabled = true;
+                track.applyConstraints()
+            });
         }
-        document.querySelector('#localVideo').srcObject = personalStream;
+        //document.querySelector('#localVideo').srcObject = personalStream;
     }
 
     export async function muteOutboundStream(muted=false) { // our new added function
@@ -353,7 +382,7 @@
     }
 
     export async function hangUp(e) {
-        const tracks = document.querySelector('#localVideo').srcObject.getTracks();
+        const tracks = document.querySelector('video').srcObject.getTracks();
         tracks.forEach(track => {
             track.stop();
         });
